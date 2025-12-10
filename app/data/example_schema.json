@@ -1,0 +1,23 @@
+{
+  "tables": [
+    { "name": "users", "columns": ["id", "name", "email"] },
+    { "name": "orders", "columns": ["id", "user_id", "total"] },
+    {
+      "name": "order_items",
+      "columns": ["id", "order_id", "product_id", "qty"]
+    },
+    { "name": "products", "columns": ["id", "name", "price"] },
+    { "name": "categories", "columns": ["id", "name"] }
+  ],
+  "relations": [
+    { "from": "orders", "to": "users", "type": "M:1" },
+    { "from": "order_items", "to": "orders", "type": "M:1" },
+    { "from": "order_items", "to": "products", "type": "M:1" },
+    { "from": "products", "to": "categories", "type": "M:1" }
+  ],
+  "usage": [
+    { "tables": ["orders", "order_items"], "count": 200 },
+    { "tables": ["orders", "users"], "count": 300 },
+    { "tables": ["products", "categories"], "count": 150 }
+  ]
+}
