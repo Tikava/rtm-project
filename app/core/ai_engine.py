@@ -4,6 +4,7 @@ from collections import defaultdict
 import math
 from copy import deepcopy
 from statistics import median
+from app.core.llm_adapter import summarize_domains_with_llm
 
 """
 Schema format expected (simple JSON):
@@ -144,13 +145,17 @@ def ai_analyze(schema: Dict[str, Any]) -> Dict[str, Any]:
 
     metrics = compute_metrics(schema, merged)
     summaries = summarize_domains(merged, schema)
+    llm = summarize_domains_with_llm(merged, summaries, schema)
     notes = []
     if usage_threshold:
         notes.append(f"Usage merge threshold: {usage_threshold}")
+    if llm.get("note"):
+        notes.append(llm["note"])
 
     return {
         "domains": merged,
         "domain_summaries": summaries,
+        "llm_summaries": llm,
         "metrics": metrics,
         "method": "ai_rule_based",
         "notes": notes
