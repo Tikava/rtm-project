@@ -1,6 +1,6 @@
 """
-LLM adapter. Uses OpenAI (chat) when включено через переменные окружения.
-Если LLM_DISABLED или нет ключа, вернёт заглушку с пояснением.
+LLM adapter. Использует OpenAI chat API, если включено через переменные окружения.
+Если LLM_DISABLED, нет библиотеки или ошибка запроса, вернёт заглушку с пояснением.
 """
 import os
 from typing import List, Dict, Any
@@ -25,7 +25,7 @@ def _get_openai_client():
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None, "OPENAI_API_KEY не задан."
-    base_url = os.getenv("OPENAI_BASE_URL")  # опционально для прокси/azure
+    base_url = os.getenv("OPENAI_BASE_URL")
     client = OpenAI(api_key=api_key, base_url=base_url)
     return client, None
 
@@ -45,7 +45,7 @@ def summarize_domains_with_llm(domains: List[List[str]], summaries: List[Dict[st
             "enabled": False,
             "provider": None,
             "items": [],
-            "note": "LLM выключена (установите LLM_ENABLED=1, задайте OPENAI_API_KEY)."
+            "note": "LLM выключена (установите LLM_ENABLED=1)."
         }
 
     client, err = _get_openai_client()
@@ -57,7 +57,7 @@ def summarize_domains_with_llm(domains: List[List[str]], summaries: List[Dict[st
             "note": err
         }
 
-    model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     # Формируем краткий промпт
     domain_lines = []
     for idx, comp in enumerate(domains):
@@ -76,7 +76,14 @@ def summarize_domains_with_llm(domains: List[List[str]], summaries: List[Dict[st
             temperature=0.2,
             max_tokens=300,
         )
-        content = resp.choices[0].message.content if resp.choices else ""
+        choices = getattr(resp, "choices", None) or []
+        if choices and getattr(choices[0], "message", None):
+            msg = choices[0].message
+            content = getattr(msg, "content", None)
+            if content is None and isinstance(msg, dict):
+                content = msg.get("content", "")
+        else:
+            content = ""
     except Exception as e:
         return {
             "enabled": False,

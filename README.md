@@ -22,7 +22,7 @@ curl -X POST http://127.0.0.1:8000/analysis \
 ## Что внутри
 - `main.py` — FastAPI приложение и роуты.
 - `app/core/ai_engine.py` — графовый baseline, эвристический “AI”, метрики и сравнение, публичная функция `analyze_schema`.
-- `app/core/llm_adapter.py` — описание доменов через LLM (OpenAI), включение `LLM_ENABLED=1`, ключ `OPENAI_API_KEY`.
+- `app/core/llm_adapter.py` — описание доменов через LLM (OpenAI), включение `LLM_ENABLED=1` и `OPENAI_API_KEY`.
 - `app/utils/db_tools.py` — нормализация входной JSON-схемы.
 - `app/services/migration_service.py` — генерация плана миграции на основе AI-доменов.
 - `app/data/example_schema.json` — образец схемы для теста.
@@ -34,5 +34,6 @@ curl -X POST http://127.0.0.1:8000/analysis \
 - Покрыть API автотестами и добавить CLI утилиту для анализа.
 
 ## Настройка LLM (OpenAI)
-- Задайте переменные: `LLM_ENABLED=1` и `OPENAI_API_KEY=...` (опционально `OPENAI_MODEL`, `OPENAI_BASE_URL`).
-- Если переменные не заданы или нет библиотеки `openai`, сервис вернёт заглушку и пояснение в поле `llm_summaries.note`.
+- Задайте `LLM_ENABLED=1` и `OPENAI_API_KEY=...`.
+- Опционально: `OPENAI_MODEL` (по умолчанию gpt-4o-mini), `OPENAI_BASE_URL` для кастомного/прокси эндпоинта.
+- Если переменные не заданы или возникнет ошибка запроса, сервис вернёт заглушку и пояснение в поле `llm_summaries.note`.

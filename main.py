@@ -1,5 +1,8 @@
 from fastapi import FastAPI
+from app.core.env import load_env
 from app.api import health, analysis, suggestions
+
+load_env()
 
 app = FastAPI(
     title="AI‑Assisted Migration Prototype",
