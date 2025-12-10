@@ -5,6 +5,7 @@ import math
 from copy import deepcopy
 from statistics import median
 from app.core.llm_adapter import summarize_domains_with_llm
+import time
 
 """
 Schema format expected (simple JSON):
@@ -558,12 +559,20 @@ def analyze_schema(raw_schema: Dict[str, Any]) -> Dict[str, Any]:
     schema.setdefault("relations", [])
     schema.setdefault("usage", [])
 
+    t0 = time.perf_counter()
     baseline = baseline_analyze(schema)
+    t1 = time.perf_counter()
     ai = ai_analyze(schema)
+    t2 = time.perf_counter()
     comparison = compare_results(baseline, ai)
 
     return {
         "baseline": baseline,
         "ai": ai,
         **comparison
+        ,
+        "timings_ms": {
+            "baseline": round((t1 - t0) * 1000, 2),
+            "ai": round((t2 - t1) * 1000, 2),
+        }
     }

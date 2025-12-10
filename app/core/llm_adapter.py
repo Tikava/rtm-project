@@ -84,6 +84,14 @@ def summarize_domains_with_llm(domains: List[List[str]], summaries: List[Dict[st
                 content = msg.get("content", "")
         else:
             content = ""
+        usage_info = getattr(resp, "usage", None)
+        token_usage = {}
+        if usage_info:
+            token_usage = {
+                "prompt_tokens": getattr(usage_info, "prompt_tokens", None),
+                "completion_tokens": getattr(usage_info, "completion_tokens", None),
+                "total_tokens": getattr(usage_info, "total_tokens", None),
+            }
     except Exception as e:
         return {
             "enabled": False,
@@ -111,5 +119,6 @@ def summarize_domains_with_llm(domains: List[List[str]], summaries: List[Dict[st
         "enabled": True,
         "provider": "openai",
         "items": items,
-        "note": f"Модель {model}"
+        "note": f"Модель {model}",
+        "token_usage": token_usage if token_usage else None
     }
