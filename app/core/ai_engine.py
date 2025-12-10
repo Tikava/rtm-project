@@ -102,38 +102,28 @@ def ai_analyze(schema: Dict[str, Any]) -> Dict[str, Any]:
         usage_counts.append(cnt)
     usage_threshold = median(usage_counts) if usage_counts else 50
 
-    # helper: detect user-centric
-    def is_user_like(name: str) -> bool:
-        low = name.lower()
-        return any(k in low for k in ("user", "account", "auth", "profile", "customer"))
-
-    # tag components containing user-like tables
-    new_components = []
-    for comp in components:
-        # if comp has user-like -> label it
-        if any(is_user_like(t) for t in comp):
-            new_components.append(sorted(comp))
-        else:
-            new_components.append(sorted(comp))
+    # refine large components: split by usage strength and keyword seeds
+    components = refine_components(components, schema, usage_map, usage_threshold)
+    components = attach_small_components(components, schema, usage_map, min_size=2)
 
     # Merge components if heavy co-usage between them
     merged = []
-    used = [False]*len(new_components)
-    for i, comp_i in enumerate(new_components):
+    used = [False]*len(components)
+    for i, comp_i in enumerate(components):
         if used[i]:
             continue
         group = set(comp_i)
-        for j in range(i+1, len(new_components)):
+        for j in range(i+1, len(components)):
             if used[j]:
                 continue
-            comp_j = new_components[j]
+            comp_j = components[j]
             # compute total usage between comp_i and comp_j
             tot = 0
             for a in comp_i:
                 for b in comp_j:
                     tot += usage_map.get(tuple(sorted((a,b))), 0)
-            # heuristic threshold: if tot > median usage or > 50 -> merge
-            if tot >= usage_threshold or tot > 50:
+            # heuristic: merge только если сильная ко-используемость и хотя бы один компонент маленький
+            if tot >= usage_threshold and (len(comp_i) <= 5 or len(comp_j) <= 5):
                 group.update(comp_j)
                 used[j] = True
         used[i] = True
@@ -288,6 +278,174 @@ def summarize_domains(components: List[List[str]], schema: Dict[str, Any]) -> Li
             reasons = [f"Label inferred: {label}"]
         summaries.append({"tables": comp, "label": label, "reasons": reasons})
     return summaries
+
+# ---------------------
+# Refinement helpers
+# ---------------------
+def refine_components(components: List[List[str]], schema: Dict[str, Any], usage_map: Dict[tuple, int], usage_threshold: float) -> List[List[str]]:
+    relations = schema.get("relations", [])
+    refined: List[List[str]] = []
+    for comp in components:
+        # 1) split large components по сильным usage
+        splits = split_component_by_usage(comp, relations, usage_map, usage_threshold)
+        for sub in splits:
+            # 2) разбить по ключевым словам внутри подкомпонента
+            seeded = seed_component_by_keywords(sub, relations)
+            refined.extend(seeded)
+    # убрать пустые и отсортировать
+    refined = [sorted(list(set(c))) for c in refined if c]
+    return refined
+
+
+def split_component_by_usage(component: List[str], relations: List[Dict[str, Any]], usage_map: Dict[tuple, int], usage_threshold: float) -> List[List[str]]:
+    """
+    Делит большой компонент на подкомпоненты, отсекая слабые связи (usage ниже порога).
+    Если после удаления связей остаётся один компонент — возвращает исходный.
+    """
+    if len(component) <= 5:
+        return [sorted(component)]
+    component_set = set(component)
+    strong_adj = defaultdict(list)
+    for r in relations:
+        a, b = r.get("from"), r.get("to")
+        if a in component_set and b in component_set:
+            w = usage_map.get(tuple(sorted((a, b))), 0)
+            if w >= usage_threshold:
+                strong_adj[a].append(b)
+                strong_adj[b].append(a)
+    visited = set()
+    subcomponents = []
+    for node in component:
+        if node in visited:
+            continue
+        stack = [node]
+        group = []
+        while stack:
+            n = stack.pop()
+            if n in visited:
+                continue
+            visited.add(n)
+            group.append(n)
+            for nb in strong_adj.get(n, []):
+                if nb not in visited:
+                    stack.append(nb)
+        subcomponents.append(sorted(group))
+    # если получилось одно или пустые группы — вернуть исходный
+    if len(subcomponents) <= 1 or all(len(g) == 0 for g in subcomponents):
+        return [sorted(component)]
+    # забрать одиночные узлы, которые не имели сильных связей
+    unused = component_set - set(sum(subcomponents, []))
+    if unused:
+        subcomponents.append(sorted(list(unused)))
+    return [g for g in subcomponents if g]
+
+
+def seed_component_by_keywords(component: List[str], relations: List[Dict[str, Any]]) -> List[List[str]]:
+    """
+    Делит компонент по ключевым словам (users/auth, catalog/products, orders/payments/shipping, promo, reference).
+    Затем относит оставшиеся таблицы к ближайшему бакету по связям.
+    """
+    if len(component) <= 2:
+        return [sorted(component)]
+    keywords = {
+        "users": ("user", "account", "auth", "profile", "session", "role"),
+        "catalog": ("product", "category", "inventory", "warehouse", "tag"),
+        "orders": ("order", "payment", "shipment", "item", "cart"),
+        "promo": ("coupon", "discount", "promo"),
+        "reference": ("lookup", "ref", "dict", "status", "audit", "log"),
+    }
+    buckets = {k: [] for k in keywords}
+    remaining = []
+    for t in component:
+        low = t.lower()
+        placed = False
+        for bucket, kws in keywords.items():
+            if any(k in low for k in kws):
+                buckets[bucket].append(t)
+                placed = True
+                break
+        if not placed:
+            remaining.append(t)
+    non_empty = {k: v for k, v in buckets.items() if v}
+    if len(non_empty) <= 1:
+        return [sorted(component)]
+    # adjacency for attachment
+    adj = defaultdict(list)
+    comp_set = set(component)
+    for r in relations:
+        a, b = r.get("from"), r.get("to")
+        if a in comp_set and b in comp_set:
+            adj[a].append(b)
+            adj[b].append(a)
+    # attach remaining to the bucket with max adjacency
+    for t in remaining:
+        scores = []
+        for bname, members in non_empty.items():
+            score = sum(1 for m in members if m in adj.get(t, []))
+            scores.append((score, bname))
+        if scores:
+            _, best = max(scores, key=lambda x: x[0])
+            non_empty[best].append(t)
+        else:
+            # если нет связей — к самому большому бакету
+            largest = max(non_empty.items(), key=lambda x: len(x[1]))[0]
+            non_empty[largest].append(t)
+    return [sorted(v) for v in non_empty.values() if v]
+
+
+def attach_small_components(components: List[List[str]], schema: Dict[str, Any], usage_map: Dict[tuple, int], min_size: int = 2) -> List[List[str]]:
+    """
+    Приклеивает слишком маленькие домены (размер < min_size) к соседям с наибольшим весом связи.
+    """
+    if not components:
+        return components
+    rels = schema.get("relations", [])
+    # индексация по таблицам
+    comp_index = {}
+    for idx, comp in enumerate(components):
+        for t in comp:
+            comp_index[t] = idx
+    weights = defaultdict(lambda: defaultdict(int))
+    for r in rels:
+        a, b = r.get("from"), r.get("to")
+        if a in comp_index and b in comp_index:
+            ia, ib = comp_index[a], comp_index[b]
+            if ia == ib:
+                continue
+            w = usage_map.get(tuple(sorted((a, b))), 1)
+            weights[ia][ib] += w
+            weights[ib][ia] += w
+    small = []
+    large = []
+    large_map = {}
+    for idx, comp in enumerate(components):
+        if len(comp) < min_size:
+            small.append((idx, comp))
+        else:
+            large_map[idx] = len(large)
+            large.append(comp)
+    if not large:
+        return components
+    for orig_idx, comp in small:
+        if not comp:
+            continue
+        candidates = weights.get(orig_idx, {})
+        target_large_idx = None
+        if candidates:
+            best = sorted(candidates.items(), key=lambda x: x[1], reverse=True)
+            for tgt, _ in best:
+                if tgt in large_map:
+                    target_large_idx = large_map[tgt]
+                    break
+        if target_large_idx is None:
+            target_large_idx = 0
+        large[target_large_idx].extend(comp)
+    # финальная очистка
+    merged = []
+    for comp in large:
+        if comp:
+            merged.append(sorted(list(set(comp))))
+    return merged
 
 # ---------------------
 # Metrics calculators

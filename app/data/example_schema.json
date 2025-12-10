@@ -1,23 +1,62 @@
 {
   "tables": [
-    { "name": "users", "columns": ["id", "name", "email"] },
-    { "name": "orders", "columns": ["id", "user_id", "total"] },
-    {
-      "name": "order_items",
-      "columns": ["id", "order_id", "product_id", "qty"]
-    },
-    { "name": "products", "columns": ["id", "name", "price"] },
-    { "name": "categories", "columns": ["id", "name"] }
+    { "name": "users", "columns": ["id", "email", "name", "status"] },
+    { "name": "profiles", "columns": ["id", "user_id", "avatar", "bio"] },
+    { "name": "sessions", "columns": ["id", "user_id", "token", "expires_at"] },
+    { "name": "roles", "columns": ["id", "name"] },
+    { "name": "user_roles", "columns": ["id", "user_id", "role_id"] },
+
+    { "name": "products", "columns": ["id", "name", "price", "category_id"] },
+    { "name": "categories", "columns": ["id", "name", "parent_id"] },
+    { "name": "inventory", "columns": ["id", "product_id", "warehouse_id", "qty"] },
+    { "name": "warehouses", "columns": ["id", "name", "region"] },
+    { "name": "product_tags", "columns": ["id", "product_id", "tag_id"] },
+    { "name": "tags", "columns": ["id", "name"] },
+
+    { "name": "orders", "columns": ["id", "user_id", "total", "status"] },
+    { "name": "order_items", "columns": ["id", "order_id", "product_id", "qty", "price"] },
+    { "name": "payments", "columns": ["id", "order_id", "amount", "method", "status"] },
+    { "name": "shipments", "columns": ["id", "order_id", "carrier", "tracking", "warehouse_id"] },
+
+    { "name": "coupons", "columns": ["id", "code", "discount", "expires_at"] },
+    { "name": "order_coupons", "columns": ["id", "order_id", "coupon_id"] },
+
+    { "name": "audit_logs", "columns": ["id", "entity", "entity_id", "action", "user_id", "ts"] },
+    { "name": "lookups_status", "columns": ["id", "code", "label"] }
   ],
   "relations": [
+    { "from": "profiles", "to": "users", "type": "1:1" },
+    { "from": "sessions", "to": "users", "type": "M:1" },
+    { "from": "user_roles", "to": "users", "type": "M:1" },
+    { "from": "user_roles", "to": "roles", "type": "M:1" },
+
+    { "from": "products", "to": "categories", "type": "M:1" },
+    { "from": "inventory", "to": "products", "type": "M:1" },
+    { "from": "inventory", "to": "warehouses", "type": "M:1" },
+    { "from": "product_tags", "to": "products", "type": "M:1" },
+    { "from": "product_tags", "to": "tags", "type": "M:1" },
+
     { "from": "orders", "to": "users", "type": "M:1" },
     { "from": "order_items", "to": "orders", "type": "M:1" },
     { "from": "order_items", "to": "products", "type": "M:1" },
-    { "from": "products", "to": "categories", "type": "M:1" }
+    { "from": "payments", "to": "orders", "type": "1:1" },
+    { "from": "shipments", "to": "orders", "type": "1:1" },
+    { "from": "shipments", "to": "warehouses", "type": "M:1" },
+
+    { "from": "order_coupons", "to": "orders", "type": "M:1" },
+    { "from": "order_coupons", "to": "coupons", "type": "M:1" },
+
+    { "from": "audit_logs", "to": "users", "type": "M:1" }
   ],
   "usage": [
-    { "tables": ["orders", "order_items"], "count": 200 },
-    { "tables": ["orders", "users"], "count": 300 },
-    { "tables": ["products", "categories"], "count": 150 }
+    { "tables": ["orders", "order_items"], "count": 1200 },
+    { "tables": ["orders", "payments"], "count": 950 },
+    { "tables": ["orders", "shipments"], "count": 800 },
+    { "tables": ["products", "inventory"], "count": 700 },
+    { "tables": ["products", "categories"], "count": 600 },
+    { "tables": ["products", "product_tags"], "count": 400 },
+    { "tables": ["users", "sessions"], "count": 500 },
+    { "tables": ["users", "orders"], "count": 900 },
+    { "tables": ["users", "roles"], "count": 300 }
   ]
 }
