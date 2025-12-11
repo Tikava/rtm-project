@@ -1,0 +1,177 @@
+{
+  "analysis": {
+    "baseline": {
+      "domains": [
+        [
+          "actor",
+          "address",
+          "category",
+          "city",
+          "country",
+          "customer",
+          "film",
+          "film_actor",
+          "film_category",
+          "inventory",
+          "language_id",
+          "payment",
+          "rental",
+          "staff",
+          "store"
+        ]
+      ],
+      "metrics": {
+        "domain_count": 1,
+        "avg_internal_coupling": 1,
+        "cross_domain_edges": 0,
+        "over_segmentation_score": 0,
+        "ownership_conflicts": 0
+      },
+      "method": "baseline"
+    },
+    "ai": {
+      "domains": [
+        [
+          "address",
+          "city",
+          "country",
+          "customer",
+          "payment",
+          "rental",
+          "staff"
+        ],
+        [
+          "actor",
+          "category",
+          "film",
+          "film_actor",
+          "film_category",
+          "inventory",
+          "language_id",
+          "store"
+        ]
+      ],
+      "domain_summaries": [
+        {
+          "tables": [
+            "address",
+            "city",
+            "country",
+            "customer",
+            "payment",
+            "rental",
+            "staff"
+          ],
+          "label": "Payments/Billing",
+          "reasons": [
+            "country is a small table (3 cols)",
+            "Label inferred: Payments/Billing"
+          ]
+        },
+        {
+          "tables": [
+            "actor",
+            "category",
+            "film",
+            "film_actor",
+            "film_category",
+            "inventory",
+            "language_id",
+            "store"
+          ],
+          "label": "Catalog/Products",
+          "reasons": [
+            "category is a small table (3 cols)",
+            "film_actor is a small table (3 cols)",
+            "film_category is a small table (3 cols)",
+            "language_id is a small table (0 cols)",
+            "Label inferred: Catalog/Products"
+          ]
+        }
+      ],
+      "llm_summaries": {
+        "enabled": true,
+        "provider": "openai",
+        "items": [
+          {
+            "tables": [
+              "address",
+              "city",
+              "country",
+              "customer",
+              "payment",
+              "rental",
+              "staff"
+            ],
+            "summary": "Домен 1: Этот домен описывает информацию о клиентах, их платежах и аренде, что позволяет эффективно управлять финансовыми операциями и взаимодействием с клиентами. "
+          },
+          {
+            "tables": [
+              "actor",
+              "category",
+              "film",
+              "film_actor",
+              "film_category",
+              "inventory",
+              "language_id",
+              "store"
+            ],
+            "summary": "Домен 2: Этот домен охватывает данные о фильмах, актерах и категориях, что необходимо для организации каталога продукции и упрощения поиска и фильтрации контента."
+          }
+        ],
+        "note": "Модель gpt-4o-mini",
+        "token_usage": {
+          "prompt_tokens": 130,
+          "completion_tokens": 80,
+          "total_tokens": 210
+        }
+      },
+      "metrics": {
+        "domain_count": 2,
+        "avg_internal_coupling": 0.725,
+        "cross_domain_edges": 3,
+        "over_segmentation_score": 0.997,
+        "ownership_conflicts": 0
+      },
+      "method": "ai_rule_based",
+      "notes": [
+        "Usage merge threshold: 1150.0",
+        "Модель gpt-4o-mini"
+      ]
+    },
+    "comparison": {
+      "cross_domain_edges": {
+        "baseline": 0,
+        "ai": 3,
+        "delta": 3
+      },
+      "domain_count": {
+        "baseline": 1,
+        "ai": 2,
+        "delta": 1
+      },
+      "ownership_conflicts": {
+        "baseline": 0,
+        "ai": 0,
+        "delta": 0
+      },
+      "avg_internal_coupling": {
+        "baseline": 1,
+        "ai": 0.725,
+        "delta": -0.275
+      },
+      "over_segmentation_score": {
+        "baseline": 0,
+        "ai": 0.997,
+        "delta": 0.997
+      }
+    },
+    "notes": [
+      "Domain count changed from 1 to 2."
+    ],
+    "timings_ms": {
+      "baseline": 0.18,
+      "ai": 5877.92
+    }
+  }
+}

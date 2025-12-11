@@ -1,0 +1,82 @@
+{
+  "migration_plan": {
+    "services": [
+      {
+        "name": "service_1",
+        "tables": [
+          "address",
+          "city",
+          "country",
+          "customer",
+          "payment",
+          "rental",
+          "staff"
+        ],
+        "label": "Payments/Billing",
+        "reasons": [
+          "country is a small table (3 cols)",
+          "Label inferred: Payments/Billing"
+        ]
+      },
+      {
+        "name": "service_2",
+        "tables": [
+          "actor",
+          "category",
+          "film",
+          "film_actor",
+          "film_category",
+          "inventory",
+          "language_id",
+          "store"
+        ],
+        "label": "Catalog/Products",
+        "reasons": [
+          "category is a small table (3 cols)",
+          "film_actor is a small table (3 cols)",
+          "film_category is a small table (3 cols)",
+          "language_id is a small table (0 cols)",
+          "Label inferred: Catalog/Products"
+        ]
+      }
+    ],
+    "ownership_map": {
+      "address": "service_1",
+      "city": "service_1",
+      "country": "service_1",
+      "customer": "service_1",
+      "payment": "service_1",
+      "rental": "service_1",
+      "staff": "service_1",
+      "actor": "service_2",
+      "category": "service_2",
+      "film": "service_2",
+      "film_actor": "service_2",
+      "film_category": "service_2",
+      "inventory": "service_2",
+      "language_id": "service_2",
+      "store": "service_2"
+    },
+    "db_split_plan": {
+      "shards": 2,
+      "mapping": {
+        "address": "service_1",
+        "city": "service_1",
+        "country": "service_1",
+        "customer": "service_1",
+        "payment": "service_1",
+        "rental": "service_1",
+        "staff": "service_1",
+        "actor": "service_2",
+        "category": "service_2",
+        "film": "service_2",
+        "film_actor": "service_2",
+        "film_category": "service_2",
+        "inventory": "service_2",
+        "language_id": "service_2",
+        "store": "service_2"
+      }
+    },
+    "notes": "Total services: 2; Avg internal coupling: 0.725; Cross-domain edges: 3"
+  }
+}

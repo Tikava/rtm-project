@@ -1,0 +1,196 @@
+{
+  "analysis": {
+    "baseline": {
+      "domains": [
+        [
+          "audit_logs",
+          "categories",
+          "coupons",
+          "inventory",
+          "order_coupons",
+          "order_items",
+          "orders",
+          "payments",
+          "product_tags",
+          "products",
+          "profiles",
+          "roles",
+          "sessions",
+          "shipments",
+          "tags",
+          "user_roles",
+          "users",
+          "warehouses"
+        ],
+        [
+          "lookups_status"
+        ]
+      ],
+      "metrics": {
+        "domain_count": 2,
+        "avg_internal_coupling": 1,
+        "cross_domain_edges": 0,
+        "over_segmentation_score": 0.297,
+        "ownership_conflicts": 0
+      },
+      "method": "baseline"
+    },
+    "ai": {
+      "domains": [
+        [
+          "categories",
+          "coupons",
+          "inventory",
+          "lookups_status",
+          "product_tags",
+          "products",
+          "profiles",
+          "roles",
+          "sessions",
+          "tags",
+          "warehouses"
+        ],
+        [
+          "audit_logs",
+          "order_coupons",
+          "order_items",
+          "orders",
+          "payments",
+          "shipments",
+          "user_roles",
+          "users"
+        ]
+      ],
+      "domain_summaries": [
+        {
+          "tables": [
+            "categories",
+            "coupons",
+            "inventory",
+            "lookups_status",
+            "product_tags",
+            "products",
+            "profiles",
+            "roles",
+            "sessions",
+            "tags",
+            "warehouses"
+          ],
+          "label": "Catalog/Products",
+          "reasons": [
+            "categories is a small table (3 cols)",
+            "lookups_status is a small table (3 cols)",
+            "product_tags is a small table (3 cols)",
+            "roles is a small table (2 cols)",
+            "tags is a small table (2 cols)",
+            "warehouses is a small table (3 cols)",
+            "Label inferred: Catalog/Products"
+          ]
+        },
+        {
+          "tables": [
+            "audit_logs",
+            "order_coupons",
+            "order_items",
+            "orders",
+            "payments",
+            "shipments",
+            "user_roles",
+            "users"
+          ],
+          "label": "Orders/Checkout",
+          "reasons": [
+            "order_coupons is a small table (3 cols)",
+            "user_roles is a small table (3 cols)",
+            "Label inferred: Orders/Checkout"
+          ]
+        }
+      ],
+      "llm_summaries": {
+        "enabled": true,
+        "provider": "openai",
+        "items": [
+          {
+            "tables": [
+              "categories",
+              "coupons",
+              "inventory",
+              "lookups_status",
+              "product_tags",
+              "products",
+              "profiles",
+              "roles",
+              "sessions",
+              "tags",
+              "warehouses"
+            ],
+            "summary": "Домен 1: Этот домен описывает товары и их характеристики, включая категории, теги и наличие на складах, что позволяет эффективно управлять каталогом продуктов и улучшать пользовательский опыт.  "
+          },
+          {
+            "tables": [
+              "audit_logs",
+              "order_coupons",
+              "order_items",
+              "orders",
+              "payments",
+              "shipments",
+              "user_roles",
+              "users"
+            ],
+            "summary": "Домен 2: Этот домен охватывает процессы оформления заказов, включая пользователей, заказы, платежи и отгрузки, что обеспечивает прозрачность и контроль над процессом покупки."
+          }
+        ],
+        "note": "Модель gpt-4o-mini",
+        "token_usage": {
+          "prompt_tokens": 144,
+          "completion_tokens": 83,
+          "total_tokens": 227
+        }
+      },
+      "metrics": {
+        "domain_count": 2,
+        "avg_internal_coupling": 0.497,
+        "cross_domain_edges": 6,
+        "over_segmentation_score": 0.982,
+        "ownership_conflicts": 0
+      },
+      "method": "ai_rule_based",
+      "notes": [
+        "Usage merge threshold: 700",
+        "Модель gpt-4o-mini"
+      ]
+    },
+    "comparison": {
+      "cross_domain_edges": {
+        "baseline": 0,
+        "ai": 6,
+        "delta": 6
+      },
+      "domain_count": {
+        "baseline": 2,
+        "ai": 2,
+        "delta": 0
+      },
+      "ownership_conflicts": {
+        "baseline": 0,
+        "ai": 0,
+        "delta": 0
+      },
+      "avg_internal_coupling": {
+        "baseline": 1,
+        "ai": 0.497,
+        "delta": -0.503
+      },
+      "over_segmentation_score": {
+        "baseline": 0.297,
+        "ai": 0.982,
+        "delta": 0.685
+      }
+    },
+    "notes": [],
+    "timings_ms": {
+      "baseline": 0.19,
+      "ai": 5080.62
+    }
+  }
+}

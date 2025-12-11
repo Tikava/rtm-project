@@ -1,0 +1,97 @@
+{
+  "migration_plan": {
+    "services": [
+      {
+        "name": "service_1",
+        "tables": [
+          "categories",
+          "coupons",
+          "inventory",
+          "lookups_status",
+          "product_tags",
+          "products",
+          "profiles",
+          "roles",
+          "sessions",
+          "tags",
+          "warehouses"
+        ],
+        "label": "Catalog/Products",
+        "reasons": [
+          "categories is a small table (3 cols)",
+          "lookups_status is a small table (3 cols)",
+          "product_tags is a small table (3 cols)",
+          "roles is a small table (2 cols)",
+          "tags is a small table (2 cols)",
+          "warehouses is a small table (3 cols)",
+          "Label inferred: Catalog/Products"
+        ]
+      },
+      {
+        "name": "service_2",
+        "tables": [
+          "audit_logs",
+          "order_coupons",
+          "order_items",
+          "orders",
+          "payments",
+          "shipments",
+          "user_roles",
+          "users"
+        ],
+        "label": "Orders/Checkout",
+        "reasons": [
+          "order_coupons is a small table (3 cols)",
+          "user_roles is a small table (3 cols)",
+          "Label inferred: Orders/Checkout"
+        ]
+      }
+    ],
+    "ownership_map": {
+      "categories": "service_1",
+      "coupons": "service_1",
+      "inventory": "service_1",
+      "lookups_status": "service_1",
+      "product_tags": "service_1",
+      "products": "service_1",
+      "profiles": "service_1",
+      "roles": "service_1",
+      "sessions": "service_1",
+      "tags": "service_1",
+      "warehouses": "service_1",
+      "audit_logs": "service_2",
+      "order_coupons": "service_2",
+      "order_items": "service_2",
+      "orders": "service_2",
+      "payments": "service_2",
+      "shipments": "service_2",
+      "user_roles": "service_2",
+      "users": "service_2"
+    },
+    "db_split_plan": {
+      "shards": 2,
+      "mapping": {
+        "categories": "service_1",
+        "coupons": "service_1",
+        "inventory": "service_1",
+        "lookups_status": "service_1",
+        "product_tags": "service_1",
+        "products": "service_1",
+        "profiles": "service_1",
+        "roles": "service_1",
+        "sessions": "service_1",
+        "tags": "service_1",
+        "warehouses": "service_1",
+        "audit_logs": "service_2",
+        "order_coupons": "service_2",
+        "order_items": "service_2",
+        "orders": "service_2",
+        "payments": "service_2",
+        "shipments": "service_2",
+        "user_roles": "service_2",
+        "users": "service_2"
+      }
+    },
+    "notes": "Total services: 2; Avg internal coupling: 0.497; Cross-domain edges: 6"
+  }
+}
