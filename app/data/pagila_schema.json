@@ -1,0 +1,68 @@
+{
+  "tables": [
+    { "name": "actor", "columns": ["actor_id", "first_name", "last_name", "last_update"] },
+    { "name": "film", "columns": ["film_id", "title", "description", "release_year", "language_id", "rental_duration", "rental_rate", "length", "replacement_cost", "rating", "last_update"] },
+    { "name": "film_actor", "columns": ["actor_id", "film_id", "last_update"] },
+    { "name": "category", "columns": ["category_id", "name", "last_update"] },
+    { "name": "film_category", "columns": ["film_id", "category_id", "last_update"] },
+
+    { "name": "inventory", "columns": ["inventory_id", "film_id", "store_id", "last_update"] },
+    { "name": "store", "columns": ["store_id", "manager_staff_id", "address_id", "last_update"] },
+
+    { "name": "customer", "columns": ["customer_id", "store_id", "first_name", "last_name", "email", "address_id", "active", "create_date", "last_update"] },
+    { "name": "staff", "columns": ["staff_id", "first_name", "last_name", "address_id", "email", "store_id", "active", "username", "password", "last_update"] },
+
+    { "name": "address", "columns": ["address_id", "address", "address2", "district", "city_id", "postal_code", "phone", "last_update"] },
+    { "name": "city", "columns": ["city_id", "city", "country_id", "last_update"] },
+    { "name": "country", "columns": ["country_id", "country", "last_update"] },
+
+    { "name": "rental", "columns": ["rental_id", "rental_date", "inventory_id", "customer_id", "return_date", "staff_id", "last_update"] },
+    { "name": "payment", "columns": ["payment_id", "customer_id", "staff_id", "rental_id", "amount", "payment_date"] }
+  ],
+
+  "relations": [
+    { "from": "film", "to": "language_id", "type": "M:1" },
+
+    { "from": "film_actor", "to": "film", "type": "M:1" },
+    { "from": "film_actor", "to": "actor", "type": "M:1" },
+
+    { "from": "film_category", "to": "film", "type": "M:1" },
+    { "from": "film_category", "to": "category", "type": "M:1" },
+
+    { "from": "inventory", "to": "film", "type": "M:1" },
+    { "from": "inventory", "to": "store", "type": "M:1" },
+
+    { "from": "customer", "to": "store", "type": "M:1" },
+    { "from": "customer", "to": "address", "type": "M:1" },
+
+    { "from": "staff", "to": "store", "type": "M:1" },
+    { "from": "staff", "to": "address", "type": "M:1" },
+
+    { "from": "address", "to": "city", "type": "M:1" },
+    { "from": "city", "to": "country", "type": "M:1" },
+
+    { "from": "rental", "to": "inventory", "type": "M:1" },
+    { "from": "rental", "to": "customer", "type": "M:1" },
+    { "from": "rental", "to": "staff", "type": "M:1" },
+
+    { "from": "payment", "to": "customer", "type": "M:1" },
+    { "from": "payment", "to": "staff", "type": "M:1" },
+    { "from": "payment", "to": "rental", "type": "M:1" }
+  ],
+
+  "usage": [
+    { "tables": ["film", "film_actor"], "count": 1800 },
+    { "tables": ["film", "film_category"], "count": 1600 },
+    { "tables": ["inventory", "film"], "count": 1400 },
+    { "tables": ["inventory", "store"], "count": 900 },
+
+    { "tables": ["customer", "rental"], "count": 1500 },
+    { "tables": ["rental", "payment"], "count": 1200 },
+    { "tables": ["rental", "staff"], "count": 1000 },
+
+    { "tables": ["address", "city"], "count": 800 },
+    { "tables": ["city", "country"], "count": 500 },
+
+    { "tables": ["payment", "customer"], "count": 1100 }
+  ]
+}
